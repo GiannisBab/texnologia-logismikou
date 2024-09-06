@@ -52,7 +52,7 @@ def perform_classification(X, y, algorithm, param):
     
     if algorithm == "KNN":
         clf = KNeighborsClassifier(n_neighbors=param)
-    else:  # Random Forest
+    else:
         clf = RandomForestClassifier(n_estimators=param, random_state=42)
     
     clf.fit(X_train, y_train)
@@ -61,10 +61,10 @@ def perform_classification(X, y, algorithm, param):
     accuracy = accuracy_score(y_test, y_pred)
     f1 = f1_score(y_test, y_pred, average='weighted')
     
-    if len(np.unique(y)) == 2:  # Binary classification
+    if len(np.unique(y)) == 2:
         y_pred_proba = clf.predict_proba(X_test)[:, 1]
         roc_auc = roc_auc_score(y_test, y_pred_proba)
-    else:  # Multiclass classification
+    else:
         y_pred_proba = clf.predict_proba(X_test)
         roc_auc = roc_auc_score(y_test, y_pred_proba, multi_class='ovr', average='weighted')
     
@@ -73,7 +73,6 @@ def perform_classification(X, y, algorithm, param):
 def main():
     st.title("Data Mining and Analysis Application")
 
-    # Sidebar
     with st.sidebar:
         selected = option_menu(
             menu_title="Main Menu",
@@ -93,12 +92,12 @@ def main():
             """)
             st.header("Πως δουλεύει")
             st.write("""
-            1. **Data Upload**: Ξεκινήστε με τη μεταφόρτωση του συνόλου δεδομένων σας (μορφή CSV, Excel ή TSV) χρησιμοποιώντας την πλαϊνή γραμμή.
+            1. **Data Upload**: Ξεκινήστε με τη μεταφόρτωση του συνόλου δεδομένων σας (μορφή CSV, Excel ή TSV).
 
             2. **Dataset Preview**: Προβάλετε τα δεδομένα σας σε μορφή πίνακα για να αποκτήσετε μια αρχική εικόνα της δομής τους.
 
             3. **Visualization**:
-                - **Dimensionality Reduction**: Χρησιμοποιήστε PCA ή UMAP για να απεικονίσετε τα δεδομένα σας σε 2D ή 3D.
+                - **Dimensionality Reduction**: Χρησιμοποιήστε PCA ή UMAP για να απεικονίσετε τα δεδομένα σας σε 2D και 3D.
                 - **Exploratory Data Analysis**: Δημιουργήστε histograms και scatter plots για να διερευνήσετε τις σχέσεις στα δεδομένα σας.
 
             4. **Machine Learning**:
@@ -109,7 +108,6 @@ def main():
             st.write("""
             Η ανάπτυξη της web εφαρμογής έγινε ολοκληρωτικά από τον Ιωάννη Μπαμπλέκη (inf2021153)
             """)
-            # ... (rest of the Info section)
 
     elif uploaded_file is None:
         st.info("Please upload a file to continue.")
@@ -163,15 +161,15 @@ def main():
                     
                     if plot_type == "Histogram":
                         hist_col = st.selectbox("Select column for histogram", numeric_cols)
-                        fig_hist = px.histogram(df, x=hist_col, color_discrete_sequence=['#FFA07A'])  # Light Salmon color
+                        fig_hist = px.histogram(df, x=hist_col, color_discrete_sequence=['#FFA07A'])
                         fig_hist.update_layout(title=f"Histogram of {hist_col}")
                         st.plotly_chart(fig_hist)
                     
-                    else:  # Scatter Plot
+                    else:
                         st.subheader("Scatter Plot")
                         x_col = st.selectbox("Select X-axis", numeric_cols)
                         y_col = st.selectbox("Select Y-axis", numeric_cols)
-                        fig_scatter = px.scatter(df, x=x_col, y=y_col, color_discrete_sequence=['#20B2AA'])  # Light Sea Green color
+                        fig_scatter = px.scatter(df, x=x_col, y=y_col, color_discrete_sequence=['#20B2AA'])
                         fig_scatter.update_layout(title=f"Scatter Plot: {x_col} vs {y_col}")
                         st.plotly_chart(fig_scatter)
 
@@ -181,15 +179,12 @@ def main():
                 tab1, tab2 = st.tabs(["Feature Selection", "Classification"])
                 
                 with tab1:
-                    # Separate features and target
-                    X = df.iloc[:, :-1]  # All columns except the last one
-                    y = df.iloc[:, -1]   # Last column as the target
+                    X = df.iloc[:, :-1]
+                    y = df.iloc[:, -1]
                     
-                    # Check the number of features
                     num_features = X.shape[1]
                     
                     if num_features > 1:
-                        # User input for number of features to select
                         n_features = st.slider("Select number of features to keep", 
                                                min_value=1, max_value=num_features, value=min(5, num_features))
                         
@@ -198,7 +193,6 @@ def main():
                         st.write(f"Selected {n_features} features:")
                         st.write(selected_features)
                         
-                        # Store the selected features in session state
                         st.session_state.selected_features = selected_features
                     else:
                         st.warning("Your dataset has only one feature. Feature selection is not applicable.")
@@ -207,35 +201,27 @@ def main():
                 with tab2:
                     st.subheader("Classification")
                     
-                    # Separate features and target
                     X = df.iloc[:, :-1]
                     y = df.iloc[:, -1]
                     
-                    # Get selected features from session state
                     selected_features = st.session_state.get('selected_features', X.columns.tolist())
                     
-                    # Create datasets
                     X_original = X
                     X_reduced = X[selected_features]
                     
                     if len(selected_features) > 1:
-                        # Algorithm selection
                         algorithm = st.selectbox("Select classification algorithm", ["KNN", "Random Forest"])
                         
-                        # Parameter input
                         if algorithm == "KNN":
                             param = st.slider("Select number of neighbors (k)", min_value=1, max_value=20, value=5)
-                        else:  # Random Forest
+                        else:
                             param = st.slider("Select number of trees", min_value=10, max_value=200, value=100)
                         
                         if st.button("Run Classification"):
-                            # Original dataset
                             acc_orig, f1_orig, roc_auc_orig = perform_classification(X_original, y, algorithm, param)
                             
-                            # Reduced dataset
                             acc_red, f1_red, roc_auc_red = perform_classification(X_reduced, y, algorithm, param)
                             
-                            # Display results
                             st.subheader("Classification Results")
                             results = pd.DataFrame({
                                 "Metric": ["Accuracy", "F1-Score", "ROC-AUC"],
@@ -244,7 +230,6 @@ def main():
                             })
                             st.table(results.set_index("Metric"))
                             
-                            # Comparison
                             st.subheader("Performance Comparison")
                             fig = px.bar(results, x="Metric", y=["Original Dataset", "Reduced Dataset"], 
                                          barmode="group", height=400)
